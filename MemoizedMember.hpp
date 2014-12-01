@@ -35,7 +35,7 @@ namespace szwast
 				m_valid = r.m_valid;
 				m_value = r.m_value;
 			}
-			catch ()
+			catch (...)
 			{
 				m_valid = false;
 				throw;
@@ -51,7 +51,7 @@ namespace szwast
 				m_valid = r.m_valid;
 				m_value = std::move(r.m_value);
 			}
-			catch ()
+			catch (...)
 			{
 				m_valid = false;
 				throw;

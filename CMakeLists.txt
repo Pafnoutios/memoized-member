@@ -7,12 +7,22 @@ project(MemoizedMember)
 
 add_subdirectory(googletest)
 
+enable_testing()
+
+include_directories(googletest/include)
 
 set(headers MemoizedMember.hpp)
-
 set(sources)
+set(unit_tests mm_test.cpp)
 
 source_group("Header Files" FILES ${headers})
 source_group("Source Files" FILES ${sources})
+source_group("Unit Tests" FILES ${unit_tests})
+
+add_executable(mm_tests ${headers} ${unit_tests})
+target_compile_options(mm_tests PRIVATE $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:--std=c++11>)
+target_link_libraries(mm_tests gtest_main)
+
+add_test(NAME MemoizedMember-Unit-Tests COMMAND mm_tests)
 
 
