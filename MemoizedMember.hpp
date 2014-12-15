@@ -36,6 +36,8 @@ class MemoizedMember
     {
     }
 
+    MemoizedMember(const MemoizedMember&) = delete;
+    MemoizedMember(MemoizedMember&&) = delete;
     ~MemoizedMember() = default;
 
     /**

@@ -104,6 +104,20 @@ TEST(GeneralMemoization, EvalNotCalledUntilEvaluated)
   EXPECT_TRUE(ValueMightThrow::eval_called);
 }
 
+
+TEST(GeneralMemoization, EvalNotCalledAgain)
+{
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  (void)static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+  ValueMightThrow::eval_called = false;
+  (void)static_cast<ValueMightThrow>(x.value);
+  EXPECT_FALSE(ValueMightThrow::eval_called);
+}
+
+
 TEST(ExceptionSafety, ThrowingOnCopy)
 {
   MemoHolder x;
