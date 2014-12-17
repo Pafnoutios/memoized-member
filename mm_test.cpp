@@ -93,7 +93,7 @@ struct MemoHolder
 };
 
 
-TEST(GeneralMemoization, EvalNotCalledUntilEvaluated)
+TEST(Memoization, EvalNotCalledUntilEvaluated)
 {
   ValueMightThrow::clear();
 
@@ -105,7 +105,7 @@ TEST(GeneralMemoization, EvalNotCalledUntilEvaluated)
 }
 
 
-TEST(GeneralMemoization, EvalNotCalledAgain)
+TEST(Memoization, EvalNotCalledAgain)
 {
   ValueMightThrow::clear();
 
@@ -118,8 +118,46 @@ TEST(GeneralMemoization, EvalNotCalledAgain)
 }
 
 
-TEST(ExceptionSafety, ThrowingOnCopy)
+TEST(Memoization, EvalCalledAgainAfterReset)
 {
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  (void) static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+  x.value.reset();
+  ValueMightThrow::eval_called = false;
+  (void) static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+}
+
+
+TEST(Memoization, EvalCalledAgainAfterException)
+{
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  ValueMightThrow::throw_next_eval = true;
+  try
+  {
+    (void) static_cast<ValueMightThrow>(x.value);
+    FAIL() << "Evaluation should have thrown an exception.";
+  }
+  catch (std::exception&)
+  {
+    SUCCEED();
+  }
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+  ValueMightThrow::eval_called = false;
+  (void) static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+}
+
+
+TEST(Assignment, MakeAGoodCopy)
+{
+  ValueMightThrow::clear();
+
   MemoHolder x;
   MemoHolder y;
 
@@ -131,8 +169,90 @@ TEST(ExceptionSafety, ThrowingOnCopy)
 
   // A good copy
   x = y;
+  ValueMightThrow::eval_called = false;
   EXPECT_EQ(y.value, x.value);
+  EXPECT_FALSE(ValueMightThrow::eval_called);
+}
 
-  //y.value.value = 8;
-  ADD_FAILURE() << "This test is not complete.";
+
+TEST(Assignment, EvalCalledAfterCopyThrows)
+{
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  MemoHolder y;
+
+  // Seed starter values into x and y.
+  ValueMightThrow::next_eval_value = 4;
+  ASSERT_EQ(4, x.value);
+  ValueMightThrow::next_eval_value = 5;
+  ASSERT_EQ(5, y.value);
+
+  ValueMightThrow::throw_next_copy = true;
+  try
+  {
+    x = y;
+    FAIL() << "Copy should have thrown an exception.";
+  }
+  catch (std::exception&)
+  {
+    SUCCEED();
+  }
+
+  // Verify eval() called again.
+  ValueMightThrow::eval_called = false;
+  (void)static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
+}
+
+
+TEST(Assignment, MakeAGoodMove)
+{
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  MemoHolder y;
+
+  // Seed starter values into x and y.
+  ValueMightThrow::next_eval_value = 4;
+  ASSERT_EQ(4, x.value);
+  ValueMightThrow::next_eval_value = 5;
+  ASSERT_EQ(5, y.value);
+
+  // A good copy
+  x = std::move(y);
+  ValueMightThrow::eval_called = false;
+  EXPECT_EQ(5, x.value);
+  EXPECT_FALSE(ValueMightThrow::eval_called);
+}
+
+
+TEST(Assignment, EvalCalledAfterMoveThrows)
+{
+  ValueMightThrow::clear();
+
+  MemoHolder x;
+  MemoHolder y;
+
+  // Seed starter values into x and y.
+  ValueMightThrow::next_eval_value = 4;
+  ASSERT_EQ(4, x.value);
+  ValueMightThrow::next_eval_value = 5;
+  ASSERT_EQ(5, y.value);
+
+  ValueMightThrow::throw_next_move = true;
+  try
+  {
+    x = std::move(y);
+    FAIL() << "Move should have thrown an exception.";
+  }
+  catch (std::exception&)
+  {
+    SUCCEED();
+  }
+
+  // Verify eval() called again.
+  ValueMightThrow::eval_called = false;
+  (void)static_cast<ValueMightThrow>(x.value);
+  EXPECT_TRUE(ValueMightThrow::eval_called);
 }
