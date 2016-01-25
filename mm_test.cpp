@@ -1,6 +1,8 @@
 /**
- * \author John Szwast
- */
+*	\author    John Szwast
+*	\year      2014-2016
+*	\copyright MIT
+*/
 
 
 #include <exception>
