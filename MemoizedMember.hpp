@@ -1,8 +1,8 @@
 /**
-*	\author    John Szwast
-*	\year      2014-2016
-*	\copyright MIT
-*/
+ *	\author    John Szwast
+ *	\year      2014-2016
+ *	\copyright MIT
+ */
 
 
 #pragma once
@@ -11,7 +11,29 @@
 #include <utility>
 #include <type_traits>
 
-
+/**
+ * \brief MemoizedMember is a C++ class that caches the result of a computation.
+ *
+ * \details
+ *  If your class `A` has an attribute `b` with a value you want to memoize:
+ * 
+ * 1. Write a `private`, `const` computation method, `type compute_b() const`.
+ * 
+ * 2. Add a `MemoizedMember` member using the computation method.
+ * 
+ * 3. Write a `public` getter for the `MemoizedMember`, `type get_b() const`.
+ * 
+ * Here is an example memoizing an `int` type attribute.
+ * 
+ *     class A
+ *     {
+ *       public:
+ *         int get_b() const {return b;}
+ *       private:
+ *         int compute_b() const;
+ *         MemoizedMember<int, A, &A::compute_b> b{*this};
+ *     };
+ */
 template<typename Key, class Class, Key (Class::*evaluate) () const>
 class MemoizedMember
 {
@@ -75,11 +97,15 @@ class MemoizedMember
     }
 
     /**
-     * Key conversion operator.  This is the meat of this class.  This is how the MemoizedMember
-     * behaves like a Key object.  If the value has not yet been calculated, then calculate it.
+     * \brief Key conversion operator.
      *
-     * @returns	The memoized value.
+     * \details
+     *  This is the meat of this class.  This is how the MemoizedMember behaves like a Key object.
+     * If the value has not yet been calculated, then calculate it.
      *
+     * \returns	The memoized value.
+     *
+     * \remarks
      * Strong exception guarantee:  If the calculation of the value to be memoized fails, then
      * it will be reattempted next time.
      */

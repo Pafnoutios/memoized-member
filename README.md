@@ -25,5 +25,5 @@ Here is an example memoizing an `int` type attribute.
       private:
         int compute_b() const;
         MemoizedMember<int, A, &A::compute_b> b{*this};
-    }
+    };
 
