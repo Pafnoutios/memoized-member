@@ -8,8 +8,9 @@
 #pragma once
 
 
-#include <utility>
+#include <mutex>
 #include <type_traits>
+#include <utility>
 
 /**
  * \brief MemoizedMember is a C++ class that caches the result of a computation.
@@ -38,13 +39,25 @@ template<typename Key, class Class, Key (Class::*evaluate) () const>
 class MemoizedMember
 {
   public:
-    MemoizedMember (Class& instance)
+    /**
+     * \brief  "Default" constructor
+     * \param[in]  instance  The Class instance in which *this is a member
+     * \remarks  We require a reference to the Class of which we are a member.
+     */
+    MemoizedMember (Class const& instance)
     noexcept (std::is_nothrow_default_constructible<Key>::value)
       : m_instance (instance)
     {
     }
 
-    MemoizedMember (Class& instance, const MemoizedMember& r)
+    /**
+    * \brief  "Copy" constructor
+    * \param[in]  instance  The Class instance in which *this is a member
+    * \param[in]  r         The source of the copy
+    * \remarks  We require a reference to the Class of which we are a member.
+    *   We do not want to copy the reference to the class of which `r` is a member.
+    */
+    MemoizedMember (Class const& instance, const MemoizedMember& r)
     noexcept (std::is_nothrow_copy_constructible<Key>::value)
       : m_instance (instance)
       , m_value (r.m_value)
@@ -52,7 +65,14 @@ class MemoizedMember
     {
     }
 
-    MemoizedMember (Class& instance, MemoizedMember && r)
+    /**
+    * \brief  "Move" constructor
+    * \param[in]  instance  The Class instance in which *this is a member
+    * \param[in]  r         The source of the copy
+    * \remarks  We require a reference to the Class of which we are a member.
+    *   We do not want to copy the reference to the class of which `r` is a member.
+    */
+    MemoizedMember (Class const& instance, MemoizedMember && r)
     noexcept (std::is_nothrow_move_constructible<Key>::value)
       : m_instance (instance)
       , m_value (std::move (r.m_value))
@@ -72,8 +92,9 @@ class MemoizedMember
      * will be cleared and recalculated on the next request.
      */
     MemoizedMember& operator= (const MemoizedMember& r)
-    noexcept (std::is_nothrow_copy_assignable<Key>::value)
     {
+      std::lock_guard<std::mutex> guard(m_lock);
+
       m_valid = false;
       m_value = r.m_value;
       m_valid = r.m_valid;
@@ -88,8 +109,9 @@ class MemoizedMember
      * will be cleared and recalculated on the next request.
      */
     MemoizedMember& operator= (const MemoizedMember && r)
-    noexcept (std::is_nothrow_move_assignable<Key>::value)
     {
+      std::lock_guard<std::mutex> guard(m_lock);
+
       m_valid = false;
       m_value = std::move (r.m_value);
       m_valid = r.m_valid;
@@ -109,8 +131,10 @@ class MemoizedMember
      * Strong exception guarantee:  If the calculation of the value to be memoized fails, then
      * it will be reattempted next time.
      */
-    operator Key() const noexcept (noexcept ( (std::declval<Class>().*evaluate) ()))
+    operator Key() const
     {
+      std::lock_guard<std::mutex> guard(m_lock);
+
       if (!m_valid)
       {
         m_value = (m_instance.*evaluate) ();
@@ -122,7 +146,7 @@ class MemoizedMember
 
     /**
      * If the owning object is mutated in a way that should change the value of the memoized
-     * member, then reset() it.  After reset(), a recomputation will occur the next time the value
+     * member, then reset() it.  After reset(), a re-computation will occur the next time the value
      * of the member is requested.
      */
     void reset() noexcept { m_valid = false; }
@@ -131,4 +155,5 @@ class MemoizedMember
     Class const& m_instance;
     mutable Key m_value {};
     mutable bool m_valid {false};
+    mutable std::mutex m_lock;
 };
