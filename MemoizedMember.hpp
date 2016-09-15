@@ -35,7 +35,7 @@
  *         MemoizedMember<int, A, &A::compute_b> b{*this};
  *     };
  */
-template<typename Key, class Class, Key (Class::*evaluate) () const>
+template<typename Key, class Class, Key (Class::*evaluate) () const, typename Mutex = std::mutex>
 class MemoizedMember
 {
   public:
@@ -93,7 +93,7 @@ class MemoizedMember
      */
     MemoizedMember& operator= (const MemoizedMember& r)
     {
-      std::lock_guard<std::mutex> guard(m_lock);
+      std::lock_guard<Mutex> guard(m_lock);
 
       m_valid = false;
       m_value = r.m_value;
@@ -110,7 +110,7 @@ class MemoizedMember
      */
     MemoizedMember& operator= (const MemoizedMember && r)
     {
-      std::lock_guard<std::mutex> guard(m_lock);
+      std::lock_guard<Mutex> guard(m_lock);
 
       m_valid = false;
       m_value = std::move (r.m_value);
@@ -133,7 +133,7 @@ class MemoizedMember
      */
     operator Key() const
     {
-      std::lock_guard<std::mutex> guard(m_lock);
+      std::lock_guard<Mutex> guard(m_lock);
 
       if (!m_valid)
       {
@@ -155,5 +155,5 @@ class MemoizedMember
     Class const& m_instance;
     mutable Key m_value {};
     mutable bool m_valid {false};
-    mutable std::mutex m_lock;
+    mutable Mutex m_lock;
 };
