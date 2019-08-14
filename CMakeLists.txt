@@ -1,8 +1,8 @@
 #	\author    John Szwast
-#	\year      2014-2016
+#	\year      2014-2019
 #	\copyright MIT
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 
 project(MemoizedMember)
 
@@ -35,21 +35,25 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 enable_testing()
 
 set(doc README.md)
-set(headers MemoizedMember.hpp)
+set(headers include/MemoizedMember.hpp)
 set(sources)
-set(unit_tests mm_test.cpp)
+set(unit_tests test/mm_test.cpp)
 
 
-source_group("Documentation" FILES ${doc})
-source_group("Header Files" FILES ${headers})
-source_group("Source Files" FILES ${sources})
-source_group("Unit Tests" FILES ${unit_tests})
+add_library(MemoizedMember INTERFACE)
+target_include_directories(MemoizedMember INTERFACE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
+)
 
-add_executable(mm_tests ${headers} ${unit_tests} ${doc})
-set_property(TARGET mm_tests PROPERTY CXX_STANDARD 11)
-set_property(TARGET mm_tests PROPERTY CXX_STANDARD_REQUIRED ON)
+install(TARGETS MemoizedMember EXPORT MM)
+install(EXPORT MM DESTINATION .)
+install(FILES ${headers} DESTINATION include)
+install(FILES ${doc} DESTINATION doc)
 
-target_link_libraries(mm_tests gtest_main)
+add_executable(mm_tests ${unit_tests})
+
+target_link_libraries(mm_tests MemoizedMember gtest_main)
 
 add_test(NAME MemoizedMember-Unit-Tests COMMAND mm_tests)
 
