@@ -80,3 +80,4 @@ install_manifest.txt
 
 build
 /.vs
+out
