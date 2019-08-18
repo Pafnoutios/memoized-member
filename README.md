@@ -60,7 +60,7 @@ And put the following contents in a file called `CMakeLists.memoized-member.in`.
 Update the `GIT_TAG` property as desired to choose the version to include.
 `GIT_TAG` can be set to either a branch or tag name.
 
-```
+```cmake
 cmake_minimum_required(VERSION 2.8.2)
 
 project(memoized-member-download NONE)
