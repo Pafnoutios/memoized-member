@@ -47,7 +47,7 @@ target_include_directories(MemoizedMember INTERFACE
 )
 
 install(TARGETS MemoizedMember EXPORT MM)
-install(EXPORT MM DESTINATION . EXPORT_LINK_INTERFACE_LIBRARIES)
+install(EXPORT MM DESTINATION cmake)
 install(FILES ${headers} DESTINATION include)
 install(FILES ${doc} DESTINATION doc)
 
