@@ -4,10 +4,7 @@
 
 cmake_minimum_required(VERSION 3.2)
 
-project(MemoizedMember)
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+project(MemoizedMember CXX)
 
 enable_testing()
 
@@ -28,9 +25,11 @@ install(EXPORT MM DESTINATION cmake)
 install(FILES ${headers} DESTINATION include)
 install(FILES ${doc} DESTINATION doc)
 
+find_package(GTest CONFIG)
+
 add_executable(mm_tests ${unit_tests})
 
-target_link_libraries(mm_tests MemoizedMember ${CONAN_LIBS})
+target_link_libraries(mm_tests MemoizedMember GTest::GTest)
 
 add_test(NAME MemoizedMember-Unit-Tests COMMAND mm_tests)
 
